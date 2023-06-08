@@ -1,0 +1,57 @@
+{
+  "name": "@fixers/s3",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Wrap common s3 functionality so you don't get crazy hair!",
+  "author": "Luca <git@lucacicada.me>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wefixers/s3.git"
+  },
+  "keywords": [
+    "s3"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "unbuild",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.347.0",
+    "@aws-sdk/s3-request-presigner": "^3.347.0",
+    "@aws-sdk/types": "^3.347.0",
+    "ufo": "^1.1.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^0.39.4",
+    "@aws-sdk/types": "^3.347.0",
+    "@types/node": "^20.2.5",
+    "changelogen": "^0.5.3",
+    "eslint": "^8.42.0",
+    "jimp": "^0.22.8",
+    "nanoid": "^4.0.2",
+    "typescript": "^5.1.3",
+    "unbuild": "^1.2.1",
+    "vitest": "^0.31.4"
+  }
+}

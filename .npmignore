@@ -1,0 +1,8 @@
+.idea
+.vscode
+.github/
+coverage/
+test/
+
+tsconfig.json
+pnpm-lock.yaml

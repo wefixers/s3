@@ -1,0 +1,8 @@
+{
+  "root": true,
+  "extends": ["@antfu"],
+  "rules": {
+    "curly": ["error", "all"],
+    "n/prefer-global/buffer": 0
+  }
+}
