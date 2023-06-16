@@ -1,4 +1,4 @@
-import type { SdkStream } from '@aws-sdk/types'
+import type { Paginator, SdkStream } from '@aws-sdk/types'
 
 import type {
   CopyObjectCommandInput,
@@ -15,6 +15,8 @@ import type {
   PutObjectCommandInput,
   PutObjectCommandOutput,
   S3Client,
+  S3PaginationConfiguration,
+  _Object,
 } from '@aws-sdk/client-s3'
 
 import {
@@ -24,11 +26,17 @@ import {
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
+  paginateListObjectsV2,
 } from '@aws-sdk/client-s3'
 
 import { normalizeS3Path } from './utils'
 
 type Maybe<T> = T | null | undefined
+
+/**
+ * Alias to the s3 {@link _Object} interface.
+ */
+export type S3Object = _Object
 
 /**
  * The s3 Body interface.
@@ -86,6 +94,11 @@ export interface S3GetOptions extends Omit<GetObjectCommandInput, 'Bucket' | 'Ke
   bucket: string
 }
 
+/**
+ * Retrieves objects from the bucket.
+ *
+ * - {@link GetObjectCommand}
+ */
 export function s3_get(path: string, options: S3GetOptions): Promise<GetObjectCommandOutput> {
   const { s3, bucket, ...commandOptions } = options
 
@@ -116,6 +129,11 @@ export interface S3HeadOptions extends Omit<HeadObjectCommandInput, 'Bucket' | '
   bucket: string
 }
 
+/**
+ * Retrieves metadata from an object without returning the object itself.
+ *
+ * - {@link HeadObjectCommand}
+ */
 export function s3_head(path: string, options: S3GetOptions): Promise<HeadObjectCommandOutput> {
   const { s3, bucket, ...commandOptions } = options
 
@@ -148,6 +166,11 @@ export interface S3PutOptions extends Omit<PutObjectCommandInput, 'Bucket' | 'Ke
 
 export type PutContentData = PutObjectCommandInput['Body']
 
+/**
+ * Put an object into a bucket.
+ *
+ * - {@link PutObjectCommand}
+ */
 export function s3_put(path: string, contents: PutContentData, options: S3PutOptions): Promise<PutObjectCommandOutput> {
   const { s3, bucket, ...commandOptions } = options
 
@@ -179,6 +202,11 @@ export interface S3ListOptions extends Omit<ListObjectsV2CommandInput, 'Bucket' 
   bucket: string
 }
 
+/**
+ * List up to 1,000 objects in a bucket with each request.
+ *
+ * - {@link ListObjectsV2Command}
+ */
 export function s3_list(options: S3ListOptions): Promise<ListObjectsV2CommandOutput> {
   const { s3, bucket, ...commandOptions } = options
 
@@ -189,6 +217,35 @@ export function s3_list(options: S3ListOptions): Promise<ListObjectsV2CommandOut
       ...commandOptions,
     }),
   )
+}
+
+/**
+ * _Be aware, you are allowed to overwrite `Bucket` and `Key` even if this interface omits them, avoid unintentionally overwriting them._
+ */
+export interface S3PaginateOptions extends S3ListOptions {
+  /**
+   * _Be aware, you are allowed to overwrite `client` even if this interface omits it, avoid unintentionally overwriting it._
+   */
+  paginate?: Omit<S3PaginationConfiguration, 'client'>
+}
+
+/**
+ * Paginate the objects in a bucket.
+ *
+ * - {@link paginateListObjectsV2}
+ */
+export function s3_paginate(options: S3PaginateOptions): Paginator<ListObjectsV2CommandOutput> {
+  const { s3, bucket, paginate, ...commandOptions } = options
+
+  return paginateListObjectsV2({
+    client: s3,
+    // we actually allow the user to overwrite client
+    ...paginate,
+  }, {
+    Bucket: bucket,
+    // we actually allow the user to overwrite Bucket and Key
+    ...commandOptions,
+  })
 }
 
 /**
@@ -208,6 +265,11 @@ export interface S3DeleteOptions extends Omit<DeleteObjectCommandInput, 'Bucket'
   bucket: string
 }
 
+/**
+ * Removes an object and inserts a delete marker, which becomes the latest version of the object.
+ *
+ * - {@link DeleteObjectCommand}
+ */
 export function s3_delete(path: string, options: S3DeleteOptions): Promise<DeleteObjectCommandOutput> {
   const { s3, bucket, ...commandOptions } = options
 
@@ -281,6 +343,8 @@ export interface BucketDestination {
  * that can be a string, or an object describing the destination bucket.
  *
  * The `options.bucket` refers the **SOURCE** bucket, this method is consistent with the rest of the library.
+ *
+ * - {@link CopyObjectCommand}
  */
 export function s3_copy(from: string, to: string | BucketDestination, options: S3CopyOptions): Promise<CopyObjectCommandOutput> {
   const { s3, bucket, ...commandOptions } = options

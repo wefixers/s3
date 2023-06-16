@@ -3,8 +3,8 @@ import { NoSuchKey, NotFound, S3Client } from '@aws-sdk/client-s3'
 
 import { resolveURL } from 'ufo'
 
-import type { BucketDestination, PutContentData, S3ListOptions } from './s3'
-import { s3_copy, s3_delete, s3_get, s3_head, s3_list, s3_put } from './s3'
+import type { BucketDestination, PutContentData, S3ListOptions, S3Object, S3PaginateOptions } from './s3'
+import { s3_copy, s3_delete, s3_get, s3_head, s3_list, s3_paginate, s3_put } from './s3'
 
 import type { CreateS3TemporaryUrlOptions } from './s3-signed-url'
 import { s3_temporarySignedUploadUrl, s3_temporarySignedUrl } from './s3-signed-url'
@@ -18,6 +18,9 @@ export interface CreateUploadTemporaryUrl extends Omit<CreateS3TemporaryUrlOptio
 }
 
 export interface ListOptions extends Omit<S3ListOptions, 's3' | 'bucket'> {
+}
+
+export interface AllOptions extends Omit<S3PaginateOptions, 's3' | 'bucket'> {
 }
 
 export interface S3DriveOptions {
@@ -209,6 +212,20 @@ export class S3Drive {
       bucket: this.config.bucket,
       ...options,
     })
+  }
+
+  async* all(options?: AllOptions): AsyncGenerator<S3Object, void, unknown> {
+    for await (const response of s3_paginate({
+      s3: this.s3,
+      bucket:
+      this.config.bucket,
+      ...options,
+    })) {
+      const objects = response.Contents ?? []
+      for (const object of objects) {
+        yield object
+      }
+    }
   }
 
   /**
