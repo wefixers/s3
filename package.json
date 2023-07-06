@@ -1,7 +1,7 @@
 {
   "name": "@fixers/s3",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Wrap common s3 functionality so you don't get crazy hair!",
   "author": "Luca <git@lucacicada.me>",
   "license": "MIT",
