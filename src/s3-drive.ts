@@ -3,7 +3,7 @@ import { NoSuchKey, NotFound, S3Client } from '@aws-sdk/client-s3'
 
 import { resolveURL } from 'ufo'
 
-import type { BucketDestination, PutContentData, S3ListOptions, S3Object, S3PaginateOptions } from './s3'
+import type { BucketDestination, PutContentData, S3CopyOptions, S3DeleteOptions, S3ListOptions, S3Object, S3PaginateOptions, S3PutOptions } from './s3'
 import { s3_copy, s3_delete, s3_get, s3_head, s3_list, s3_paginate, s3_put } from './s3'
 
 import type { CreateS3TemporaryUrlOptions } from './s3-signed-url'
@@ -21,6 +21,15 @@ export interface ListOptions extends Omit<S3ListOptions, 's3' | 'bucket'> {
 }
 
 export interface AllOptions extends Omit<S3PaginateOptions, 's3' | 'bucket'> {
+}
+
+export interface CopyOptions extends Omit<S3CopyOptions, 's3' | 'bucket'> {
+}
+
+export interface PutOptions extends Omit<S3PutOptions, 's3' | 'bucket'> {
+}
+
+export interface DeleteOptions extends Omit<S3DeleteOptions, 's3' | 'bucket'> {
 }
 
 export interface S3DriveOptions {
@@ -117,13 +126,14 @@ export class S3Drive {
    * Due the way S3 works, this method need to check if the file exists **before** deletion.
    * If you do not care about the return value, use {@link erase}.
    */
-  delete = async (path: string): Promise<boolean> => {
+  delete = async (path: string, options?: DeleteOptions): Promise<boolean> => {
     const exists = await this.exists(path)
 
     // in AWS S3, delete always succeed
     await s3_delete(path, {
       s3: this.s3,
       bucket: this.config.bucket,
+      ...options,
     })
 
     return exists
@@ -132,10 +142,11 @@ export class S3Drive {
   /**
    * Deletes a file.
    */
-  erase = async (path: string): Promise<void> => {
+  erase = async (path: string, options?: DeleteOptions): Promise<void> => {
     await s3_delete(path, {
       s3: this.s3,
       bucket: this.config.bucket,
+      ...options,
     })
   }
 
@@ -166,10 +177,11 @@ export class S3Drive {
   /**
    * Copy a file.
    */
-  copy = async (from: string, to: string | BucketDestination): Promise<boolean> => {
+  copy = async (from: string, to: string | BucketDestination, options?: CopyOptions): Promise<boolean> => {
     await s3_copy(from, to, {
       s3: this.s3,
       bucket: this.config.bucket,
+      ...options,
     })
 
     return true
@@ -197,10 +209,11 @@ export class S3Drive {
   /**
    * Write the contents of a file, returns the {@link head} of the file.
    */
-  put = async (path: string, contents: PutContentData): Promise<HeadObjectCommandOutput > => {
+  put = async (path: string, contents: PutContentData, options?: PutOptions): Promise<HeadObjectCommandOutput > => {
     await s3_put(path, contents, {
       s3: this.s3,
       bucket: this.config.bucket,
+      ...options,
     })
 
     return this.head(path)
